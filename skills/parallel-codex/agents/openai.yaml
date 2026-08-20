@@ -1,0 +1,4 @@
+interface:
+  display_name: "Parallel Codex"
+  short_description: "Delegate and verify concurrent Codex agent work"
+  default_prompt: "Use $parallel-codex to delegate this task to an isolated Codex agent and verify its result."

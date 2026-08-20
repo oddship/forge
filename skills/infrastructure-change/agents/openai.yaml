@@ -1,0 +1,4 @@
+interface:
+  display_name: "infrastructure-change"
+  short_description: "Plan and validate infrastructure changes safely"
+  default_prompt: "Use $infrastructure-change to plan and validate an infrastructure change in this repository."

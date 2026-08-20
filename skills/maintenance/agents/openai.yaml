@@ -1,0 +1,4 @@
+interface:
+  display_name: "maintenance"
+  short_description: "Handle routine service maintenance safely"
+  default_prompt: "Use $maintenance to prepare a safe routine maintenance change or runbook."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "backup-restore"
+  short_description: "Design and verify backup and restore workflows"
+  default_prompt: "Use $backup-restore to design or verify a backup and restore workflow."

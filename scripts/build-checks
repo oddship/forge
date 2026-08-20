@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+case "${1:-all}" in
+  local)
+    targets=(
+      .#checks.x86_64-linux.local-smoke
+    )
+    ;;
+  observability)
+    targets=(
+      .#checks.x86_64-linux.local-observability-smoke
+    )
+    ;;
+  network)
+    targets=(
+      .#checks.x86_64-linux.netbird-policy
+    )
+    ;;
+  identity)
+    targets=(
+      .#checks.x86_64-linux.zitadel-policy
+      .#checks.x86_64-linux.zitadel-smoke
+    )
+    ;;
+  secrets)
+    targets=(
+      .#checks.x86_64-linux.secrets-policy
+    )
+    ;;
+  production-host)
+    targets=(
+      .#checks.x86_64-linux.production-host-policy
+    )
+    ;;
+  all)
+    targets=(
+      .#checks.x86_64-linux.local-smoke
+      .#checks.x86_64-linux.local-observability-smoke
+      .#checks.x86_64-linux.netbird-policy
+      .#checks.x86_64-linux.zitadel-policy
+      .#checks.x86_64-linux.zitadel-smoke
+      .#checks.x86_64-linux.secrets-policy
+      .#checks.x86_64-linux.production-host-policy
+    )
+    ;;
+  *)
+    echo "usage: build-checks [local|observability|network|identity|secrets|production-host|all]" >&2
+    exit 2
+    ;;
+esac
+
+nix build "${targets[@]}"

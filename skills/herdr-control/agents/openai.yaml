@@ -1,0 +1,4 @@
+interface:
+  display_name: "Herdr Control"
+  short_description: "Safely inspect and control Herdr terminal layouts"
+  default_prompt: "Use $herdr-control to inspect the current Herdr layout and perform the requested pane operation safely."

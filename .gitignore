@@ -1,0 +1,38 @@
+# Nix
+.direnv/
+result
+local-vm-result
+local-observability-result
+*.qcow2
+result-*
+
+# OpenTofu / Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+crash.log
+crash.*.log
+
+# Secrets and local credentials
+.env
+.env.*
+!.env.example
+*.age
+*.pem
+*.key
+*.crt
+secrets/*
+!secrets/README.md
+
+# Editors and operating systems
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Generated local output
+coverage/
+dist/
+tmp/

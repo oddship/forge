@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+mode="${1:-format}"
+
+if ! find infra -type f \( -name '*.tf' -o -name '*.tofu' \) -print -quit | grep -q .; then
+  exit 0
+fi
+
+case "$mode" in
+  format)
+    tofu -chdir=infra fmt -recursive
+    ;;
+  check)
+    tofu -chdir=infra fmt -check -recursive
+    ;;
+  *)
+    echo "usage: tofu-format [format|check]" >&2
+    exit 2
+    ;;
+esac

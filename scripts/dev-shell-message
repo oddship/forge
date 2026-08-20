@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+export REPO_ROOT="$repo_root"
+
+echo
+echo "========================================"
+echo " Forge development shell"
+echo "========================================"
+echo
+echo " Repo: $REPO_ROOT"
+echo " Tools: Nix | OpenTofu | Just | SOPS | Age"
+echo " Commands: just check | just test | just ci"
+echo " Run 'just check' before committing."
+
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  forge_hooks_dir="$(git rev-parse --git-path hooks)"
+  forge_pre_commit_hook="$forge_hooks_dir/pre-commit"
+  if [ ! -x "$forge_pre_commit_hook" ] || ! grep -q "pre-commit" "$forge_pre_commit_hook" 2>/dev/null; then
+    echo
+    echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+    echo " WARNING: PRE-COMMIT HOOK NOT INSTALLED"
+    echo " Run: just install-hooks"
+    echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+  fi
+fi
+
+echo
+echo "----------------------------------------"
+echo " Forge | Nix + OpenTofu infrastructure"
+echo "----------------------------------------"

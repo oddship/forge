@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+declare -a pids=()
+
+while read -r pid args; do
+  case "$args" in
+    *qemu-system-x86_64*'-name forge-local '*|*qemu-system-x86_64*'-name forge-local')
+      pids+=("$pid")
+      ;;
+    *qemu-system-x86_64*'-name forge-observability '*|*qemu-system-x86_64*'-name forge-observability')
+      pids+=("$pid")
+      ;;
+  esac
+done < <(ps -eo pid=,args=)
+
+if ((${#pids[@]} == 0)); then
+  echo "No Forge local QEMU VMs are running."
+  exit 0
+fi
+
+echo "Stopping Forge local QEMU VMs: ${pids[*]}"
+kill -TERM "${pids[@]}"
+
+for _ in {1..10}; do
+  still_running=()
+  for pid in "${pids[@]}"; do
+    if kill -0 "$pid" 2>/dev/null; then
+      still_running+=("$pid")
+    fi
+  done
+  if ((${#still_running[@]} == 0)); then
+    echo "Forge local QEMU VMs stopped."
+    exit 0
+  fi
+  sleep 1
+done
+
+echo "Forge QEMU VMs did not stop within 10 seconds: ${still_running[*]}" >&2
+exit 1

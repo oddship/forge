@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [ ! -f infra/main.tf ] && [ ! -f infra/main.tofu ]; then
+  exit 0
+fi
+
+tofu -chdir=infra init -backend=false -input=false
+tofu -chdir=infra validate

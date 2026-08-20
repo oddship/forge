@@ -1,0 +1,4 @@
+interface:
+  display_name: "Meta self-improvement"
+  short_description: "Capture durable lessons for future agent runs"
+  default_prompt: "Use $meta-self-improvement to capture a durable project lesson and improve the repository skills."
