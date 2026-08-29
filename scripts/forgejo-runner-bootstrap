@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ $# -ne 3 ]]; then
+  echo "usage: $0 FORGEJO_URL ADMIN_PASSWORD_FILE STATE_DIRECTORY" >&2
+  exit 2
+fi
+
+forgejo_url="$1"
+admin_password_file="$2"
+state_directory="$3"
+token_file="$state_directory/token"
+uuid_file="$state_directory/uuid"
+
+if [[ -s "$token_file" && -s "$uuid_file" ]]; then
+  exit 0
+fi
+
+install -d -m 0700 "$state_directory"
+response_file="$(mktemp)"
+trap 'rm -f "$response_file"' EXIT
+
+for _ in $(seq 1 60); do
+  if curl --fail --silent --show-error \
+    --user "forge-admin:$(<"$admin_password_file")" \
+    --request POST \
+    --json '{"name":"local-native","ephemeral":false}' \
+    --output "$response_file" \
+    "${forgejo_url%/}/api/v1/admin/actions/runners"; then
+    jq --exit-status --raw-output '.token' "$response_file" >"$token_file"
+    jq --exit-status --raw-output '.uuid' "$response_file" >"$uuid_file"
+    chmod 0600 "$token_file" "$uuid_file"
+    exit 0
+  fi
+  sleep 2
+done
+
+echo "Forgejo did not accept runner registration within 120 seconds" >&2
+exit 1

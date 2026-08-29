@@ -20,6 +20,11 @@
     9090
   ];
 
+  # QEMU exposes the host Nix store as guest UID 65534, which logrotate 3.22
+  # rejects during its boot-time ownership check. The generated configuration
+  # remains build-time validated; production retains the runtime check.
+  systemd.services.logrotate-checkconf.enable = false;
+
   services.logchef = {
     enable = true;
     package = logchef.packages.x86_64-linux.logchef;
@@ -37,7 +42,7 @@
     settings.auth.local.enabled = true;
     settings.provisioning = {
       manage_sources = true;
-      manage_teams = false;
+      manage_teams = true;
       prune = false;
       dry_run = false;
       sources = [
@@ -51,6 +56,18 @@
             table_name = "events";
             username = "default";
           };
+        }
+      ];
+      teams = [
+        {
+          name = "Forge platform";
+          sources = [ "Forge platform logs" ];
+          members = [
+            {
+              email = "admin@forge.local";
+              role = "admin";
+            }
+          ];
         }
       ];
     };

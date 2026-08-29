@@ -31,6 +31,13 @@
   };
   services.openssh.settings.PasswordAuthentication = lib.mkForce true;
 
+  # The QEMU VM mounts the host Nix store with its files owned by the guest's
+  # nobody user. Logrotate 3.22 rejects the generated store-backed config in
+  # its boot-time check for that reason, even though NixOS already validates
+  # the same config while building it. Keep the runtime check enabled on
+  # production hosts, where store paths are root-owned.
+  systemd.services.logrotate-checkconf.enable = false;
+
   services.nginx.enable = true;
   services.nginx.virtualHosts."default" = {
     listen = [
@@ -77,13 +84,69 @@
       passwordFile = config.sops.secrets."forgejo-admin-password".path;
     };
     backup.enable = true;
-    settings.server.ROOT_URL = "http://forge.localhost:8082/";
+    settings.server.ROOT_URL = "http://forge.localhost:8080/";
+  };
+  forge.services.forgejoRunner = {
+    enable = true;
+    url = "http://127.0.0.1:3000/";
+    uuid = "@FORGEJO_RUNNER_UUID@";
+    tokenFile = "/var/lib/forgejo-runner-bootstrap/token";
+    containerRuntime = "podman";
+  };
+  systemd.services.forgejo-runner-bootstrap = {
+    description = "Register the disposable local Forgejo Actions runner";
+    after = [ "forgejo-admin-bootstrap.service" ];
+    requires = [ "forgejo-admin-bootstrap.service" ];
+    before = [ "forgejo-runner-default.service" ];
+    wantedBy = [ "multi-user.target" ];
+    path = [
+      pkgs.coreutils
+      pkgs.curl
+      pkgs.jq
+    ];
+    serviceConfig = {
+      Type = "oneshot";
+      StateDirectory = "forgejo-runner-bootstrap";
+      StateDirectoryMode = "0700";
+    };
+    script = ''
+      ${lib.getExe pkgs.bash} ${../scripts/forgejo-runner-bootstrap} \
+        http://127.0.0.1:3000 \
+        ${config.sops.secrets."forgejo-admin-password".path} \
+        /var/lib/forgejo-runner-bootstrap
+    '';
+  };
+  systemd.services."forgejo-runner-default" = {
+    after = [ "forgejo-runner-bootstrap.service" ];
+    requires = [ "forgejo-runner-bootstrap.service" ];
+    preStart = ''
+      rm -f ./config.yaml
+      cp -v ${config.services.forgejo-runner.instances.default.configFile} ./config.yaml
+      chmod u+w ./config.yaml
+      ${lib.getExe pkgs.replace-secret} \
+        "@FORGEJO_RUNNER_UUID@" \
+        "$CREDENTIALS_DIRECTORY/UUID" \
+        ./config.yaml
+      chmod u-w ./config.yaml
+    '';
+    serviceConfig = {
+      ExecStart = lib.mkForce "${lib.getExe config.services.forgejo-runner.package} daemon --config ./config.yaml";
+      LoadCredential = [ "UUID:/var/lib/forgejo-runner-bootstrap/uuid" ];
+    };
   };
   forge.services.discourse = {
     enable = true;
     hostname = "discourse.localhost";
     backup.enable = true;
   };
+  services.discourse.siteSettings.developer.port = 8080;
+  # NixOS siteSettings are defaults and do not replace a value already stored
+  # in Discourse's persistent database. Enforce the disposable browser origin
+  # on every start so authentication callbacks retain the forwarded host port.
+  systemd.services.discourse.preStart = lib.mkAfter ''
+    ${config.services.discourse.package.rubyEnv}/bin/bundle exec rails runner \
+      'SiteSetting.port = 8080'
+  '';
   services.nginx.virtualHosts."discourse.localhost".listen = [
     {
       addr = "127.0.0.1";

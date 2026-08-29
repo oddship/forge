@@ -8,3 +8,7 @@ break fresh checkouts.
 Secret scripts create and verify the ignored local SOPS/age fixture. Use the
 stable `just secrets-init`, `just secrets-check`, and `just test-secrets`
 recipes rather than calling them directly during normal work.
+
+`forgejo-runner-bootstrap` performs the local VM's idempotent Actions runner
+registration. It stores the generated UUID and token in the VM's persistent
+state directory; those credentials never enter the Nix store or repository.

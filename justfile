@@ -21,7 +21,7 @@ syntax-check:
 
 # Check repository shell scripts with ShellCheck.
 shell-check:
-    shellcheck scripts/dev-shell-message scripts/tofu-format scripts/tofu-validate scripts/build-checks scripts/vm-stop
+    shellcheck scripts/dev-shell-message scripts/tofu-format scripts/tofu-validate scripts/build-checks scripts/vm-stop scripts/forgejo-runner-bootstrap
 
 # Validate the flake and any OpenTofu configuration that has been added.
 validate:
