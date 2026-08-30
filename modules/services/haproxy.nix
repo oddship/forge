@@ -46,6 +46,16 @@ in
       default = "mailpit.localhost";
     };
 
+    dashboardDomain = lib.mkOption {
+      type = lib.types.str;
+      default = "dashboard.localhost";
+    };
+
+    vaultwardenDomain = lib.mkOption {
+      type = lib.types.str;
+      default = "vaultwarden.localhost";
+    };
+
     forgejoBackend = lib.mkOption {
       type = lib.types.str;
       default = "127.0.0.1:3000";
@@ -59,6 +69,16 @@ in
     mailpitBackend = lib.mkOption {
       type = lib.types.str;
       default = "127.0.0.1:8025";
+    };
+
+    dashboardBackend = lib.mkOption {
+      type = lib.types.str;
+      default = "127.0.0.1:18082";
+    };
+
+    vaultwardenBackend = lib.mkOption {
+      type = lib.types.str;
+      default = "127.0.0.1:8222";
     };
 
     landingBackend = lib.mkOption {
@@ -85,9 +105,13 @@ in
           acl forgejo_host hdr(host) -i ${hostValues cfg.forgejoDomain}
           acl discourse_host hdr(host) -i ${hostValues cfg.discourseDomain}
           acl mailpit_host hdr(host) -i ${hostValues cfg.mailpitDomain}
+          acl dashboard_host hdr(host) -i ${hostValues cfg.dashboardDomain}
+          acl vaultwarden_host hdr(host) -i ${hostValues cfg.vaultwardenDomain}
           use_backend forgejo if forgejo_host
           use_backend discourse if discourse_host
           use_backend mailpit if mailpit_host
+          use_backend dashboard if dashboard_host
+          use_backend vaultwarden if vaultwarden_host
           default_backend landing
 
         backend forgejo
@@ -98,6 +122,12 @@ in
 
         backend mailpit
           server mailpit ${cfg.mailpitBackend} check
+
+        backend dashboard
+          server dashboard ${cfg.dashboardBackend} check
+
+        backend vaultwarden
+          server vaultwarden ${cfg.vaultwardenBackend} check
 
         backend landing
           server landing ${cfg.landingBackend} check

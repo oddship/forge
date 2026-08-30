@@ -46,6 +46,7 @@ pkgs.testers.runNixOSTest {
       imports = [
         sopsNix.nixosModules.sops
         ../modules/base.nix
+        ../modules/local-apps.nix
         ../modules/local-secrets.nix
         ../modules/operator-access.nix
         ../modules/secrets.nix
@@ -63,6 +64,7 @@ pkgs.testers.runNixOSTest {
         locations."/".return = ''200 "Forge local target"'';
       };
       forge.services.mailpit.enable = true;
+      forge.localApps.enable = true;
       forge.services.postgresql = {
         enable = true;
         databases = [ "forgejo" ];
@@ -151,6 +153,8 @@ pkgs.testers.runNixOSTest {
     machine.wait_for_unit("nginx.service")
     machine.wait_for_unit("haproxy.service")
     machine.wait_for_unit("mailpit-forge.service")
+    machine.wait_for_unit("homepage-dashboard.service")
+    machine.wait_for_unit("vaultwarden.service")
     machine.wait_for_unit("postgresql.service")
     machine.wait_for_unit("redis-forge.service")
     machine.wait_for_unit("redis-discourse.service")
@@ -278,11 +282,20 @@ pkgs.testers.runNixOSTest {
     machine.succeed("curl --fail http://127.0.0.1/ | grep -F 'Forge local target'")
     machine.succeed("curl --fail -H 'Host: forge.localhost' http://127.0.0.1/ | grep -F Forgejo")
     machine.succeed("curl --fail -H 'Host: mailpit.localhost' http://127.0.0.1/ | grep -F 'Mailpit'")
+    machine.succeed("curl --fail -H 'Host: dashboard.localhost' http://127.0.0.1/ | grep -F 'Forgejo'")
+    machine.succeed("curl --fail -o /dev/null -H 'Host: vaultwarden.localhost' http://127.0.0.1/alive")
     machine.succeed("curl --fail http://127.0.0.1:3000/ | grep -F Forgejo")
     machine.succeed("curl --fail http://127.0.0.1:8025/ | grep -F 'Mailpit'")
     machine.succeed("pg_isready --host 127.0.0.1")
     machine.succeed("redis-cli -h 127.0.0.1 ping | grep -F PONG")
     machine.succeed("test -s /var/backup/postgresql/forgejo.sql.gz")
+    machine.succeed("systemctl start backup-vaultwarden.service")
+    machine.succeed("test -s /var/backup/vaultwarden/db.sqlite3")
+    machine.succeed("systemctl stop vaultwarden.service")
+    machine.succeed("install -o vaultwarden -g vaultwarden -m 0600 /var/backup/vaultwarden/db.sqlite3 /var/lib/vaultwarden/db.sqlite3")
+    machine.succeed("systemctl start vaultwarden.service")
+    machine.wait_for_unit("vaultwarden.service")
+    machine.succeed("curl --fail -o /dev/null -H 'Host: vaultwarden.localhost' http://127.0.0.1/alive")
     machine.succeed("systemctl start forgejo-dump.service")
     machine.succeed("find /var/lib/forgejo/dump -type f -print -quit | grep .")
   '';

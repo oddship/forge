@@ -9,6 +9,8 @@ The planned platform includes:
 - PostgreSQL and Redis as independently managed data services.
 - ZITADEL and NetBird for identity-aware private access.
 - HAProxy, Prometheus, Grafana, and logging for ingress and operations.
+- Homepage as the local service dashboard.
+- Vaultwarden for human-managed passwords and passkeys.
 - Mailpit for captured email during local development and the pre-user MVP.
 - Hetzner Object Storage for production OpenTofu state and encrypted backups.
 - Automated daily backups, restore checks, upgrades, and day-to-day maintenance described as code and runbooks.

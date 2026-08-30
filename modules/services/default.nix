@@ -1,5 +1,6 @@
 {
   imports = [
+    ./dashboard.nix
     ./discourse.nix
     ./forgejo-runner.nix
     ./forgejo.nix
@@ -9,6 +10,7 @@
     ./observability.nix
     ./postgresql.nix
     ./redis.nix
+    ./vaultwarden.nix
     ./zitadel.nix
   ];
 }

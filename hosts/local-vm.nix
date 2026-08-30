@@ -10,6 +10,7 @@
   imports = [
     (modulesPath + "/virtualisation/qemu-vm.nix")
     ../modules/base.nix
+    ../modules/local-apps.nix
     ../modules/services
   ];
 
@@ -48,7 +49,9 @@
     ];
     locations."/" = {
       extraConfig = "default_type text/html;";
-      return = ''200 "<!doctype html><html><head><title>Forge local VM</title></head><body><h1>Forge local VM</h1><ul><li><a href=\"http://forge.localhost:8082\">Forgejo</a></li><li><a href=\"http://discourse.localhost:8081\">Discourse</a></li><li><a href=\"http://mailpit.localhost:8083\">Mailpit</a></li></ul></body></html>"'';
+      # Keep the landing page content in a standalone asset so it can be
+      # edited and reviewed as HTML rather than as a Nix string literal.
+      return = "200 ${builtins.toJSON (builtins.readFile ./local-vm-landing.html)}";
     };
   };
 
@@ -58,6 +61,9 @@
   };
 
   forge.services.mailpit.enable = true;
+  # These dashboard/password services are disposable local fixtures. The VM
+  # is reachable through host-bound QEMU forwards, not a public listener.
+  forge.localApps.enable = true;
   forge.services.postgresql = {
     enable = true;
     databases = [ "forgejo" ];
