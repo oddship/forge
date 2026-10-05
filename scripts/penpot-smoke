@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Run against the interactive VM, where Podman can fetch official images.
+# The NixOS test driver has no registry access; keep policy checks separate.
+origin="${1:-http://penpot.localhost:8080}"
+for attempt in $(seq 1 120); do
+  if curl --fail --silent --max-time 5 --resolve penpot.localhost:8080:127.0.0.1 \
+    "$origin/readyz" >/dev/null; then
+    break
+  fi
+  if [ "$attempt" -eq 120 ]; then
+    echo "Penpot did not become ready; inspect podman-penpot-{backend,exporter,frontend}.service in the VM" >&2
+    exit 1
+  fi
+  sleep 5
+done
+curl --fail --silent --max-time 5 --resolve penpot.localhost:8080:127.0.0.1 "$origin/" | grep -i '<title>.*Penpot' >/dev/null
+curl --fail --silent --max-time 5 --resolve penpot.localhost:8080:127.0.0.1 "$origin/js/config.js" | grep -F "$origin"
+echo "Penpot frontend, backend readiness, and browser origin verified."

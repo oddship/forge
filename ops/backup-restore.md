@@ -14,6 +14,7 @@ Hetzner Object Storage and a restore has been exercised from that copy.
 | Forge Redis | `redisBackup-forge.service` | `/var/backup/redis/forge.rdb` | Local smoke writes a marker, restores the RDB, restarts Redis, and reads the marker. |
 | Discourse PostgreSQL, Redis, and uploads | `discourse-backup.service` | `/var/backup/discourse/discourse-*.tar.zst` | Local smoke invokes `forge-discourse-restore` behind `FORGE_ALLOW_DESTRUCTIVE_RESTORE=1` and probes Discourse afterward. |
 | ZITADEL PostgreSQL and recovery material | `zitadel-backup.service` | `/var/backup/zitadel/zitadel-*.tar.zst` | `zitadel-smoke` checks archive members, the destructive restore gate, and health after restore. |
+| Penpot PostgreSQL only (partial coverage) | `postgresqlBackup-penpot.service` in the interactive VM | `/var/backup/postgresql/penpot.sql.gz` | Assets and the runtime master key also require a consistent capture; no complete backup or restore drill yet. See [Penpot recovery](penpot.md). |
 | OpenTofu state | Remote S3 backend, provisioned later | Independent state bucket | Restore the state object into a disposable workspace and run a read-only plan before production use. |
 
 The local test target also exercises Forgejo Actions, because runner state and

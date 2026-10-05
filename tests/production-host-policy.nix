@@ -39,6 +39,7 @@ pkgs.runCommand "forge-production-host-policy" { } ''
   test "${nixpkgs.lib.boolToString evaluated.forge.services.haproxy.enable}" = true
   test "${nixpkgs.lib.boolToString evaluated.forge.services.netbird.enable}" = false
   test "${nixpkgs.lib.boolToString evaluated.forge.services.zitadel.enable}" = false
+  test "${nixpkgs.lib.boolToString evaluated.forge.services.penpot.enable}" = false
   test "${nixpkgs.lib.boolToString evaluated.services.forgejo.dump.enable}" = true
   test "${nixpkgs.lib.boolToString evaluated.services.postgresqlBackup.enable}" = true
   test "${evaluated.systemd.services.discourse-backup.description}" = "Backup Discourse data"

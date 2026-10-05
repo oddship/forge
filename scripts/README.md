@@ -1,5 +1,9 @@
 # Scripts
 
+`penpot-smoke` probes the interactive VM's Penpot frontend, backend readiness,
+and browser origin through HAProxy. Run it with `just penpot-smoke` after
+`just vm-run`.
+
 Repository scripts hold nontrivial shell used by the `justfile` or the Nix
 development shell. Keep the public command interface in `just`; invoke these
 scripts through `bash scripts/<name>` so executable-bit differences do not

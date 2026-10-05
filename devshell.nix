@@ -3,6 +3,7 @@
 pkgs.mkShell {
   packages = with pkgs; [
     age
+    curl
     git
     jq
     just

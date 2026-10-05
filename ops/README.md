@@ -12,6 +12,9 @@ The ZITADEL and NetBird boundary is documented in [identity.md](identity.md).
 
 The NetBird enrollment and firewall boundary is documented in [networking.md](networking.md).
 
+Penpot's local bootstrap, persistence, production gates, and recovery boundary
+are documented in [penpot.md](penpot.md).
+
 The operator and Forgejo Git SSH boundaries are documented in [ssh.md](ssh.md).
 
 The production secret ownership and break-glass procedure is documented in

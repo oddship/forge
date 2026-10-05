@@ -5,6 +5,8 @@ Service-specific configuration will live here as the platform is implemented:
 - Forgejo — source control and collaboration.
 - Forgejo Runner — OCI-isolated Actions execution; local runners may share the disposable VM, while production runners use a separate host.
 - Discourse — community forum and its supporting dependencies.
+- Penpot — collaborative design and prototyping in the disposable local VM;
+  see [operation and recovery notes](../ops/penpot.md).
 - PostgreSQL and Redis — independently managed data services with service-owned backup and restore procedures.
 - Mailpit — private, non-delivering email capture for local development and the pre-user MVP.
 - ZITADEL and NetBird — operator identity and private networking.

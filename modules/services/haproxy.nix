@@ -56,6 +56,16 @@ in
       default = "vaultwarden.localhost";
     };
 
+    penpotDomain = lib.mkOption {
+      type = lib.types.str;
+      default = "penpot.localhost";
+    };
+
+    penpotBackend = lib.mkOption {
+      type = lib.types.str;
+      default = "127.0.0.1:18083";
+    };
+
     forgejoBackend = lib.mkOption {
       type = lib.types.str;
       default = "127.0.0.1:3000";
@@ -107,11 +117,13 @@ in
           acl mailpit_host hdr(host) -i ${hostValues cfg.mailpitDomain}
           acl dashboard_host hdr(host) -i ${hostValues cfg.dashboardDomain}
           acl vaultwarden_host hdr(host) -i ${hostValues cfg.vaultwardenDomain}
+          ${lib.optionalString config.forge.services.penpot.enable "acl penpot_host hdr(host) -i ${hostValues cfg.penpotDomain}"}
           use_backend forgejo if forgejo_host
           use_backend discourse if discourse_host
           use_backend mailpit if mailpit_host
           use_backend dashboard if dashboard_host
           use_backend vaultwarden if vaultwarden_host
+          ${lib.optionalString config.forge.services.penpot.enable "use_backend penpot if penpot_host"}
           default_backend landing
 
         backend forgejo
@@ -128,6 +140,12 @@ in
 
         backend vaultwarden
           server vaultwarden ${cfg.vaultwardenBackend} check
+
+        ${lib.optionalString config.forge.services.penpot.enable ''
+          backend penpot
+            timeout tunnel 1h
+            server penpot ${cfg.penpotBackend} check
+        ''}
 
         backend landing
           server landing ${cfg.landingBackend} check

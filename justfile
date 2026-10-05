@@ -21,7 +21,7 @@ syntax-check:
 
 # Check repository shell scripts with ShellCheck.
 shell-check:
-    shellcheck scripts/dev-shell-message scripts/tofu-format scripts/tofu-validate scripts/build-checks scripts/vm-stop scripts/forgejo-runner-bootstrap
+    shellcheck scripts/dev-shell-message scripts/tofu-format scripts/tofu-validate scripts/build-checks scripts/vm-stop scripts/forgejo-runner-bootstrap scripts/penpot-smoke
 
 # Validate the flake and any OpenTofu configuration that has been added.
 validate:
@@ -72,6 +72,14 @@ test-identity:
 # Run the production host secret and boot-boundary policy check.
 test-host:
     bash scripts/build-checks production-host
+
+# Check Penpot's credential, listener, proxy, and production boundaries.
+test-penpot:
+    bash scripts/build-checks penpot
+
+# Probe Penpot in an already running interactive local VM.
+penpot-smoke:
+    bash scripts/penpot-smoke
 
 # Run the local SOPS/age secret round-trip and policy check.
 test-secrets:

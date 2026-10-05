@@ -64,6 +64,16 @@
   # These dashboard/password services are disposable local fixtures. The VM
   # is reachable through host-bound QEMU forwards, not a public listener.
   forge.localApps.enable = true;
+  forge.services.penpot = {
+    enable = true;
+    localFixture = true;
+    publicUri = "http://penpot.localhost:8080";
+    smtp = {
+      port = 1025;
+      tls = false;
+      from = "penpot@penpot.localhost";
+    };
+  };
   forge.services.postgresql = {
     enable = true;
     databases = [ "forgejo" ];
@@ -234,7 +244,9 @@
       guest.port = 22;
     }
   ];
-  virtualisation.memorySize = 4096;
+  virtualisation.memorySize = 6144;
+  # Penpot includes a JVM and a browser exporter; leave room for OCI layers.
+  virtualisation.diskSize = 16384;
   virtualisation.cores = 2;
 
   system.stateVersion = "24.11";

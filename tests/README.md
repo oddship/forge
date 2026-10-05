@@ -10,6 +10,10 @@ The flake imports each test expression from this directory into
   datasource and dashboard provisioning, and authenticated Logchef queries.
 - `netbird-policy.nix` and `zitadel-policy.nix` validate evaluated firewall,
   secret, service, and backup boundaries.
+- `penpot-policy.nix` checks container credentials, local/production database
+  authentication, loopback listeners, ingress, and the pinned nginx template.
+  `just penpot-smoke` probes a running interactive VM; account, upload, export,
+  and restore checks are documented in `ops/penpot.md`.
 - `zitadel-smoke.nix` exercises ZITADEL bootstrap, backup, destructive restore,
   and post-restore health.
 - `production-host-policy.nix` verifies that the Hetzner host uses external

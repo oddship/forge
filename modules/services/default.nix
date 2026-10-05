@@ -8,6 +8,7 @@
     ./mailpit.nix
     ./netbird.nix
     ./observability.nix
+    ./penpot.nix
     ./postgresql.nix
     ./redis.nix
     ./vaultwarden.nix

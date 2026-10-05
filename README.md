@@ -6,6 +6,7 @@ The planned platform includes:
 
 - [Forgejo](https://forgejo.org/) with Forgejo Actions for source control, collaboration, and CI.
 - [Discourse](https://www.discourse.org/) for community discussion.
+- [Penpot](https://penpot.app/) for collaborative design and prototyping.
 - PostgreSQL and Redis as independently managed data services.
 - ZITADEL and NetBird for identity-aware private access.
 - HAProxy, Prometheus, Grafana, and logging for ingress and operations.
@@ -43,6 +44,8 @@ just host-build # evaluate/build the Hetzner host target without deploying
 just vm-test   # run the local NixOS smoke test
 just test-identity # run the ZITADEL policy and restore smoke tests
 just test-host  # run the production host policy check
+just test-penpot # check Penpot's configuration and private service boundaries
+just penpot-smoke # probe Penpot in an already running local VM
 just secrets-init # create an ignored local age identity and encrypted fixture
 just hooks     # run the pre-commit hook against every tracked file
 ```
@@ -85,6 +88,12 @@ coverage is tracked in [`ops/backup-restore.md`](./ops/backup-restore.md).
    only after the remote-state and disaster-recovery paths are exercised.
 
 Mailpit is intentionally non-delivering. Transactional SMTP and account-recovery testing are release gates before accepting external users.
+
+The local VM also includes [Penpot](https://penpot.app/) at
+<http://penpot.localhost:8080> for collaborative design. Its pinned containers
+use the local PostgreSQL, Redis, and Mailpit services. See
+[`ops/penpot.md`](./ops/penpot.md) for first boot, checks, persistence, and the
+production and recovery gates.
 
 ## Contributions
 

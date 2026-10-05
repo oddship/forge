@@ -56,7 +56,13 @@ in
                 description = "Passwords and passkeys";
               };
             }
-          ];
+          ]
+          ++ lib.optional config.forge.services.penpot.enable {
+            Penpot = {
+              href = config.forge.services.penpot.publicUri;
+              description = "Collaborative design and prototyping";
+            };
+          };
         }
         {
           Operations = [
