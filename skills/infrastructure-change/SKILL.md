@@ -63,3 +63,11 @@ then add a policy check that evaluates the host without requiring its runtime
 secret files or a local QEMU module.
 
 Do not apply production infrastructure, rotate credentials, destroy resources, or modify remote state without explicit authorization in the task. If remote state is unavailable, preserve the bootstrap boundary instead of silently switching the steady-state workflow to local state.
+
+For HTTP-01 issuance behind HAProxy, inspect the locked NixOS ACME unit split:
+`acme-<cert>.service` supplies initial certificate material, while
+`acme-order-renew-<cert>.service` performs network issuance. Order the latter
+after both the edge and challenge responder; requiring successful issuance
+before starting its HTTP listener would prevent bootstrap. Build the optional
+ACME host configuration locally, and keep trusted issuance/renewal as live
+DNS checks before admitting users.

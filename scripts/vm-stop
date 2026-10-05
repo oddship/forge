@@ -11,6 +11,9 @@ while read -r pid args; do
     *qemu-system-x86_64*'-name forge-observability '*|*qemu-system-x86_64*'-name forge-observability')
       pids+=("$pid")
       ;;
+    *qemu-system-x86_64*'-name forge-local-https '*|*qemu-system-x86_64*'-name forge-local-https')
+      pids+=("$pid")
+      ;;
   esac
 done < <(ps -eo pid=,args=)
 

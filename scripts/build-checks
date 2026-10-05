@@ -36,6 +36,9 @@ case "${1:-all}" in
   penpot)
     targets=(.#checks.x86_64-linux.penpot-policy)
     ;;
+  https)
+    targets=(.#checks.x86_64-linux.local-https-smoke)
+    ;;
   all)
     targets=(
       .#checks.x86_64-linux.local-smoke
@@ -46,10 +49,11 @@ case "${1:-all}" in
       .#checks.x86_64-linux.secrets-policy
       .#checks.x86_64-linux.production-host-policy
       .#checks.x86_64-linux.penpot-policy
+      .#checks.x86_64-linux.local-https-smoke
     )
     ;;
   *)
-    echo "usage: build-checks [local|observability|network|identity|secrets|production-host|penpot|all]" >&2
+    echo "usage: build-checks [local|observability|network|identity|secrets|production-host|penpot|https|all]" >&2
     exit 2
     ;;
 esac

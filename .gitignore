@@ -3,6 +3,7 @@
 result
 local-vm-result
 local-observability-result
+local-https-result
 *.qcow2
 result-*
 

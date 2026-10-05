@@ -6,12 +6,37 @@ let
     domain:
     lib.concatStringsSep " " (
       [ domain ]
-      ++ map (port: "${domain}:${toString port}") ([ cfg.listenPort ] ++ cfg.additionalHostPorts)
+      ++ map (port: "${domain}:${toString port}") (
+        [ cfg.listenPort ] ++ lib.optional cfg.tls.enable cfg.tls.port ++ cfg.additionalHostPorts
+      )
     );
 in
 {
   options.forge.services.haproxy = {
     enable = lib.mkEnableOption "the Forge HAProxy edge";
+
+    exposeLocalRoutes = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = "Expose local Mailpit, dashboard, and Vaultwarden routes. Disable at the production edge.";
+    };
+    acmeChallengeBackend = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      description = "Optional loopback HTTP-01 responder.";
+    };
+    tls = {
+      enable = lib.mkEnableOption "HTTPS termination and HTTP redirects";
+      port = lib.mkOption {
+        type = lib.types.port;
+        default = 443;
+      };
+      certificateFile = lib.mkOption {
+        type = lib.types.str;
+        default = "/etc/forge/tls/edge.pem";
+        description = "Runtime key and certificate chain PEM, kept outside the Nix store.";
+      };
+    };
 
     listenAddress = lib.mkOption {
       type = lib.types.str;
@@ -98,6 +123,16 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    assertions = [
+      {
+        assertion =
+          !cfg.tls.enable
+          || (
+            lib.hasPrefix "/" cfg.tls.certificateFile && !(lib.hasPrefix "/nix/store/" cfg.tls.certificateFile)
+          );
+        message = "HAProxy's TLS private key must remain outside the Nix store.";
+      }
+    ];
     services.haproxy = {
       enable = true;
       config = ''
@@ -109,22 +144,48 @@ in
           timeout client 30s
           timeout server 30s
 
-        frontend forge-http
-          bind ${cfg.listenAddress}:${toString cfg.listenPort}
-          http-request set-header X-Forwarded-Proto http
+        ${lib.optionalString cfg.tls.enable ''
+          frontend forge-http-redirect
+            bind ${cfg.listenAddress}:${toString cfg.listenPort}
+            ${lib.optionalString (
+              cfg.acmeChallengeBackend != null
+            ) "acl acme_path path_beg /.well-known/acme-challenge/"}
+            http-request redirect scheme https code 301 ${
+              lib.optionalString (cfg.acmeChallengeBackend != null) "unless acme_path"
+            }
+            ${lib.optionalString (cfg.acmeChallengeBackend != null) "use_backend acme_challenge if acme_path"}
+        ''}
+
+        frontend forge-apps
+          bind ${cfg.listenAddress}:${
+            toString (if cfg.tls.enable then cfg.tls.port else cfg.listenPort)
+          }${lib.optionalString cfg.tls.enable " ssl crt ${cfg.tls.certificateFile} ssl-min-ver TLSv1.2 alpn h2,http/1.1"}
+          http-request set-header X-Forwarded-Proto ${if cfg.tls.enable then "https" else "http"}
+          http-request del-header X-Forwarded-For
           acl forgejo_host hdr(host) -i ${hostValues cfg.forgejoDomain}
           acl discourse_host hdr(host) -i ${hostValues cfg.discourseDomain}
-          acl mailpit_host hdr(host) -i ${hostValues cfg.mailpitDomain}
-          acl dashboard_host hdr(host) -i ${hostValues cfg.dashboardDomain}
-          acl vaultwarden_host hdr(host) -i ${hostValues cfg.vaultwardenDomain}
+          ${lib.optionalString cfg.exposeLocalRoutes ''
+            acl mailpit_host hdr(host) -i ${hostValues cfg.mailpitDomain}
+            acl dashboard_host hdr(host) -i ${hostValues cfg.dashboardDomain}
+            acl vaultwarden_host hdr(host) -i ${hostValues cfg.vaultwardenDomain}
+          ''}
           ${lib.optionalString config.forge.services.penpot.enable "acl penpot_host hdr(host) -i ${hostValues cfg.penpotDomain}"}
           use_backend forgejo if forgejo_host
           use_backend discourse if discourse_host
-          use_backend mailpit if mailpit_host
-          use_backend dashboard if dashboard_host
-          use_backend vaultwarden if vaultwarden_host
+          ${lib.optionalString cfg.exposeLocalRoutes ''
+            use_backend mailpit if mailpit_host
+            use_backend dashboard if dashboard_host
+            use_backend vaultwarden if vaultwarden_host
+          ''}
           ${lib.optionalString config.forge.services.penpot.enable "use_backend penpot if penpot_host"}
-          default_backend landing
+          ${
+            if cfg.tls.enable then
+              "http-request return status 404 unless forgejo_host or discourse_host"
+              + lib.optionalString cfg.exposeLocalRoutes " or mailpit_host or dashboard_host or vaultwarden_host"
+              + lib.optionalString config.forge.services.penpot.enable " or penpot_host"
+            else
+              "default_backend landing"
+          }
 
         backend forgejo
           server forgejo ${cfg.forgejoBackend} check
@@ -149,6 +210,11 @@ in
 
         backend landing
           server landing ${cfg.landingBackend} check
+
+        ${lib.optionalString (cfg.acmeChallengeBackend != null) ''
+          backend acme_challenge
+            server acme ${cfg.acmeChallengeBackend} check
+        ''}
       '';
     };
   };

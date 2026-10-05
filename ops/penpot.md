@@ -93,7 +93,7 @@ set; RTO is unmeasured until a drill includes image downloads and migrations.
 ## Production and rollback
 
 Penpot remains disabled on the Hetzner host. Before enabling it, configure
-HTTPS ingress (the current HAProxy profile is HTTP-only), real transactional
+its own HTTPS hostname and certificate coverage, real transactional
 SMTP and recovery tests, a separately provisioned PostgreSQL database/role
 with password authentication, private Redis connectivity, and the complete
 backup/restore workflow. Keep `localFixture = false`; provide a SOPS-managed

@@ -1,10 +1,16 @@
 # Production secret inventory
 
 The production host consumes an age identity at
-`/run/forge/secrets/age-key.txt` and an encrypted SOPS YAML file at
+`/var/lib/forge/secrets/age-key.txt` and an encrypted SOPS YAML file at
 `/etc/forge/secrets/production.yaml`. Both files are bootstrap inputs. They
 must exist before `sops-install-secrets.service` starts; the host does not
 generate or recover either file automatically.
+
+The identity must be root-owned with mode `0600` and its directory mode `0700`.
+`forge-production-secret-check.service` gates SOPS installation on these inputs.
+Keep the identity on persistent storage so an ordinary reboot can decrypt the
+same ciphertext. The local HTTPS rehearsal tests this production boot path
+with disposable inputs; it does not generate credentials for real hosts.
 
 The age identity and encrypted data must have separate custody. Keep the age
 identity in an offline/password-manager recovery record and keep the encrypted
@@ -38,7 +44,7 @@ them does not change the custody model.
 ## Bootstrap and break-glass recovery
 
 1. Provision the host and create `/etc/forge/secrets` and
-   `/run/forge/secrets` with root-only permissions.
+   `/var/lib/forge/secrets` with root-only permissions.
 2. Inject the production age identity and encrypted SOPS file through the
    approved bootstrap channel. Confirm the identity can decrypt the file
    before starting public services.

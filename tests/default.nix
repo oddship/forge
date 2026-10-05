@@ -19,5 +19,6 @@ in
   zitadel-smoke = import ./zitadel-smoke.nix args;
   secrets-policy = import ./secrets-policy.nix args;
   production-host-policy = import ./production-host-policy.nix args;
+  local-https-smoke = import ./local-https-smoke.nix args;
   penpot-policy = import ./penpot-policy.nix args;
 }

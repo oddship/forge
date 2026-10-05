@@ -17,6 +17,9 @@ are documented in [penpot.md](penpot.md).
 
 The operator and Forgejo Git SSH boundaries are documented in [ssh.md](ssh.md).
 
+The shared stack, separate local/production profiles, HTTPS rehearsal, and
+provider adapter contract are documented in [deployment.md](deployment.md).
+
 The production secret ownership and break-glass procedure is documented in
 [secrets-inventory.md](secrets-inventory.md). The service backup matrix,
 recovery order, and current restore coverage are documented in

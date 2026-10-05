@@ -1,6 +1,6 @@
 # Forge
 
-Forge is an open-source, Nix- and OpenTofu-based infrastructure repository for hosting a small self-managed platform on Hetzner.
+Forge is an open-source, Nix- and OpenTofu-based infrastructure repository for hosting a small self-managed platform. Hetzner is the first cloud target; the service stack and production profile are provider-independent.
 
 The planned platform includes:
 
@@ -44,6 +44,8 @@ just host-build # evaluate/build the Hetzner host target without deploying
 just vm-test   # run the local NixOS smoke test
 just test-identity # run the ZITADEL policy and restore smoke tests
 just test-host  # run the production host policy check
+just test-https # run the production core locally over HTTPS, including reboot
+just https-run # start an interactive local production-core rehearsal
 just test-penpot # check Penpot's configuration and private service boundaries
 just penpot-smoke # probe Penpot in an already running local VM
 just secrets-init # create an ignored local age identity and encrypted fixture
@@ -71,6 +73,10 @@ and the production inventory is in
 [`ops/secrets-inventory.md`](./ops/secrets-inventory.md). It uses SOPS and age,
 with private identities kept outside Git and the Nix store. Backup and restore
 coverage is tracked in [`ops/backup-restore.md`](./ops/backup-restore.md).
+
+The local development, production, and cloud-adapter boundaries are documented
+in [`ops/deployment.md`](./ops/deployment.md). Local development runs real
+services; the local HTTPS rehearsal imports the same production core profile.
 
 ## Roadmap
 

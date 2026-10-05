@@ -6,6 +6,7 @@ Forge is an open-source Nix and OpenTofu repository for operating a small, self-
 
 - Treat production access, credentials, state, and backups as sensitive. Never commit secrets, private keys, `.tfvars`, state files, or generated credentials.
 - Prefer declarative, reviewable changes in Nix, OpenTofu, and shell scripts. Keep one concern per change.
+- Keep service modules and the production profile independent of cloud providers. Local development and release rehearsals must use real services with explicit local inputs; put provider-specific provisioning and hardware in separate adapters.
 - Preserve a clear bootstrap path: remote state and backup services may not exist during first deployment, so document any one-time bootstrap explicitly and keep it recoverable.
 - Use `nix develop` for the flake-provided development environment and `just` for repository commands. Do not add host-specific dependencies when the flake can provide them.
 - Treat `justfile` as the public command interface: add or update a recipe before using a recurring repository command, and put nontrivial shell logic in `scripts/` instead of composing it ad hoc in agent tool calls.

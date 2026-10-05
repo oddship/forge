@@ -14,6 +14,7 @@ let
     set -euo pipefail
 
     install -d -m 0700 /run/forge
+    install -d -m 0700 "$(dirname ${lib.escapeShellArg (toString cfg.sopsFile)})"
     workdir="$(mktemp -d)"
     cleanup() {
       rm -rf -- "$workdir"
@@ -30,6 +31,7 @@ let
       "$(${pkgs.openssl}/bin/openssl rand -hex 64)" > "$workdir/secrets.yaml"
     printf 'discourse-admin-password: %s\n' ${lib.escapeShellArg "${cfg.fixtureSeed}-discourse-admin"} >> "$workdir/secrets.yaml"
     printf 'forgejo-admin-password: %s\n' ${lib.escapeShellArg "${cfg.fixtureSeed}-forgejo-admin"} >> "$workdir/secrets.yaml"
+    printf 'forgejo-mailer-password: %s\n' ${lib.escapeShellArg "${cfg.fixtureSeed}-mailer"} >> "$workdir/secrets.yaml"
     ${pkgs.sops}/bin/sops --encrypt --input-type yaml \
       --age "$(${pkgs.age}/bin/age-keygen -y ${lib.escapeShellArg cfg.ageKeyFile})" \
       --output ${lib.escapeShellArg (toString cfg.sopsFile)} "$workdir/secrets.yaml"
@@ -57,6 +59,11 @@ in
       default = "forge-local";
       description = "Deterministic prefix for disposable local administrator credentials.";
     };
+    persistFixture = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = "Preserve the encrypted local fixture across reboots; explicit rotation still replaces it.";
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -66,7 +73,7 @@ in
     forge.secrets = {
       enable = true;
       ageKeyFile = cfg.ageKeyFile;
-      sopsFile = sopsFileLink;
+      sopsFile = lib.mkDefault sopsFileLink;
       secrets = {
         "discourse-secret-key-base" = {
           key = "discourse-secret-key-base";
@@ -105,7 +112,15 @@ in
       unitConfig.DefaultDependencies = "no";
       serviceConfig = {
         Type = "oneshot";
-        ExecStart = writeFixture;
+        ExecStart = pkgs.writeShellScript "forge-local-fixture-bootstrap" ''
+          if ${
+            if cfg.persistFixture then "true" else "false"
+          } && [ -s ${lib.escapeShellArg (toString cfg.sopsFile)} ]; then
+            test -s ${lib.escapeShellArg cfg.ageKeyFile}
+          else
+            ${writeFixture}
+          fi
+        '';
         RemainAfterExit = true;
       };
     };

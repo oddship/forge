@@ -41,6 +41,14 @@
         ];
       };
 
+      nixosConfigurations.local-https = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          inputs."sops-nix".nixosModules.sops
+          ./hosts/local-https.nix
+        ];
+      };
+
       nixosConfigurations.hetzner-vm = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [

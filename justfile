@@ -73,6 +73,15 @@ test-identity:
 test-host:
     bash scripts/build-checks production-host
 
+# Exercise production HTTPS and persistent SOPS secrets in a real local VM.
+test-https:
+    bash scripts/build-checks https
+
+# Run a local rehearsal of the provider-independent production profile.
+https-run:
+    nix build .#nixosConfigurations.local-https.config.system.build.vm -o local-https-result
+    QEMU_KERNEL_PARAMS="console=ttyS0" ./local-https-result/bin/run-forge-local-https-vm -nographic
+
 # Check Penpot's credential, listener, proxy, and production boundaries.
 test-penpot:
     bash scripts/build-checks penpot
