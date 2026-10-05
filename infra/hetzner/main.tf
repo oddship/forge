@@ -29,7 +29,7 @@ variable "operator_cidrs" {
   type = list(string)
   validation {
     condition = length(var.operator_cidrs) > 0 && alltrue([
-      for cidr in var.operator_cidrs : can(cidrhost(cidr, 0)) && !contains(["0.0.0.0/0", "::/0"], cidr)
+      for cidr in var.operator_cidrs : can(cidrhost(cidr, 0)) && try(tonumber(split("/", cidr)[1]), 0) > 0
     ])
     error_message = "Supply explicit operator networks; world-open SSH is not permitted."
   }
