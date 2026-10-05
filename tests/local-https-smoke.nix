@@ -15,13 +15,13 @@ pkgs.testers.runNixOSTest {
     machine.wait_for_unit("haproxy.service")
     machine.wait_for_unit("discourse.service", timeout=600)
     ca = "/var/lib/forge-local-tls/ca.crt"
-    forge = f"curl --fail --silent --show-error --max-time 10 --cacert {ca} --resolve forge.forge.test:443:127.0.0.1 https://forge.forge.test"
-    discourse = f"curl --fail --silent --show-error --max-time 10 --cacert {ca} --resolve community.forge.test:443:127.0.0.1 https://community.forge.test"
+    forge = f"curl --fail --silent --show-error --max-time 10 --cacert {ca} --connect-to forge.forge.test:8443:127.0.0.1:443 https://forge.forge.test:8443"
+    discourse = f"curl --fail --silent --show-error --max-time 10 --cacert {ca} --connect-to community.forge.test:8443:127.0.0.1:443 https://community.forge.test:8443"
     machine.wait_until_succeeds(f"{forge}/api/healthz", timeout=120)
-    machine.wait_until_succeeds(f"{discourse}/srv/status", timeout=120)
+    machine.wait_until_succeeds(f"{discourse}/srv/status", timeout=180)
     machine.succeed(f"{forge}/api/v1/user -u forge-admin:forge-local-forgejo-admin | jq -e '.is_admin == true'")
     csrf = machine.succeed(f"{discourse}/session/csrf.json -c /tmp/discourse.cookies | jq -r '.csrf'").strip()
-    machine.succeed(f"{discourse}/session.json -b /tmp/discourse.cookies -c /tmp/discourse.cookies -H 'Accept: application/json' -H 'X-Requested-With: XMLHttpRequest' -H 'X-CSRF-Token: {csrf}' --data-urlencode login=admin --data-urlencode password=forge-local-discourse-admin | jq -e '.user.admin == true'")
+    machine.succeed(f"{discourse}/session.json -b /tmp/discourse.cookies -c /tmp/discourse.cookies -H 'Origin: https://community.forge.test:8443' -H 'Accept: application/json' -H 'X-Requested-With: XMLHttpRequest' -H 'X-CSRF-Token: {csrf}' --data-urlencode login=admin --data-urlencode password=forge-local-discourse-admin | jq -e '.user.admin == true'")
     machine.succeed(f"{discourse}/session/current.json -b /tmp/discourse.cookies | jq -e '.current_user.admin == true'")
     machine.succeed("curl --silent --max-time 10 -I -H 'Host: forge.forge.test' http://127.0.0.1 | grep -i 'location: https://forge.forge.test/'")
     machine.succeed(f"curl --silent --max-time 10 --cacert {ca} --resolve forge.forge.test:443:127.0.0.1 -H 'Host: mailpit.localhost' -o /dev/null -w '%{{http_code}}' https://forge.forge.test | grep '^404$'")
@@ -39,6 +39,6 @@ pkgs.testers.runNixOSTest {
     machine.wait_for_unit("discourse.service", timeout=600)
     assert before == machine.succeed(f"sha256sum {paths}"), "secrets or certificates changed across reboot"
     machine.wait_until_succeeds(f"{forge}/api/v1/user -u forge-admin:forge-local-forgejo-admin | jq -e '.is_admin == true'", timeout=120)
-    machine.wait_until_succeeds(f"{discourse}/srv/status", timeout=120)
+    machine.wait_until_succeeds(f"{discourse}/srv/status", timeout=180)
   '';
 }

@@ -206,7 +206,10 @@ pkgs.testers.runNixOSTest {
     machine.succeed("systemctl start discourse-backup.service")
     machine.succeed("archive=$(find /var/backup/discourse -maxdepth 1 -type f -name 'discourse-*.tar.zst' -print -quit); test -n \"$archive\"; FORGE_ALLOW_DESTRUCTIVE_RESTORE=1 forge-discourse-restore \"$archive\"")
     machine.wait_for_unit("discourse.service")
-    machine.wait_until_succeeds("curl --fail -H 'Host: discourse.local' http://127.0.0.1/ | grep -i Discourse", timeout=60)
+    # systemd becomes active before restored Discourse workers can serve HTTP.
+    # A cold worker took over a minute in the real restore drill. Bound every
+    # request so a stalled proxy response cannot consume the polling deadline.
+    machine.wait_until_succeeds("curl --fail --silent --show-error --connect-timeout 3 --max-time 10 -H 'Host: discourse.local' http://127.0.0.1/ | grep -i Discourse", timeout=180)
     machine.succeed("su -l forgejo -c 'GITEA_WORK_DIR=/var/lib/forgejo forgejo admin user create --admin --username test --password totallysafe --email test@localhost --must-change-password=false'")
     api_token = machine.succeed(
         "curl --fail -X POST http://test:totallysafe@127.0.0.1:3000/api/v1/users/test/tokens "

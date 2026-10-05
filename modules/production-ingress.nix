@@ -72,7 +72,9 @@ in
           (_: {
             recommendedProxySettings = false;
             extraConfig = lib.mkAfter ''
-              proxy_set_header Host ${config.forge.services.discourse.hostname};
+              proxy_set_header Host ${config.forge.services.discourse.hostname}${
+                lib.optionalString (cfg.publicPort != 443) ":${toString cfg.publicPort}"
+              };
               proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
               proxy_set_header X-Forwarded-For $http_x_forwarded_for;
             '';

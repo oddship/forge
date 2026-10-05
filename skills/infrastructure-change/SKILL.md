@@ -35,7 +35,7 @@ For interactive local VM smoke tests, treat QEMU boot as separate from applicati
 
 Validate the actual interactive QEMU closure in addition to cached NixOS tests. The QEMU shared Nix store can appear as guest UID 65534, so runtime tools that require root-owned configuration paths may fail even when their build-time validation passes; keep any workaround scoped to disposable VM hosts and retain the production runtime check. Keep manual VM provisioning aligned with the smoke-test contract: if an audit expects a provisioned account, team, source, or dashboard, configure and query that same object in both targets.
 
-When placing HAProxy in front of a NixOS module that manages its own Nginx virtual host, inspect the rendered listen ports and explicitly move or disable the module-managed listener before binding HAProxy to the edge port. A QEMU host forward also still traverses the guest firewall, so every intentionally forwarded browser port needs an explicit guest firewall rule and an end-to-end host-side probe. When the browser origin uses a non-default port, configure that full origin in the application and verify an authenticated redirect; if the NixOS module exposes database-backed site settings as defaults, explicitly reconcile any already-persisted value rather than assuming a new default replaces it.
+When placing HAProxy in front of a NixOS module that manages its own Nginx virtual host, inspect the rendered listen ports and explicitly move or disable the module-managed listener before binding HAProxy to the edge port. A QEMU host forward also still traverses the guest firewall, so every intentionally forwarded browser port needs an explicit guest firewall rule and an end-to-end host-side probe. When the browser origin uses a non-default port, configure that full origin in the application, preserve its canonical host and port in the upstream Host header, and verify an authenticated request with the browser Origin header; if the NixOS module exposes database-backed site settings as defaults, explicitly reconcile any already-persisted value rather than assuming a new default replaces it.
 
 For OCI services using host networking, inspect every upstream listener, including metrics and diagnostic ports, and verify the actual guest sockets after boot. A declared environment option does not prove the implementation uses it: Penpot 2.18.1's exporter ignores its HTTP host setting, while its frontend adds a metrics listener on 8082 that collides with Forge's browser forward. Keep any binding workaround scoped to the pinned component, test the real socket behavior, and reassess it when upgrading; closed firewall ports do not establish loopback binding.
 
@@ -71,3 +71,8 @@ after both the edge and challenge responder; requiring successful issuance
 before starting its HTTP listener would prevent bootstrap. Build the optional
 ACME host configuration locally, and keep trusted issuance/renewal as live
 DNS checks before admitting users.
+
+After a Discourse restore, wait for the real HTTP endpoint as well as its
+systemd unit. Restored workers can take over a minute to become ready on the
+local VM; use a bounded per-request curl timeout and a separate readiness
+window so proxy startup errors remain retryable without an unbounded request.
