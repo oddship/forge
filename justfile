@@ -21,7 +21,31 @@ syntax-check:
 
 # Check repository shell scripts with ShellCheck.
 shell-check:
-    shellcheck scripts/dev-shell-message scripts/tofu-format scripts/tofu-validate scripts/build-checks scripts/vm-stop scripts/forgejo-runner-bootstrap scripts/penpot-smoke
+    shellcheck scripts/dev-shell-message scripts/tofu-format scripts/tofu-validate scripts/tofu-workflow scripts/build-checks scripts/vm-stop scripts/forgejo-runner-bootstrap scripts/penpot-smoke
+
+# Validate real provider schemas without connecting to cloud accounts.
+infra-validate:
+    bash scripts/tofu-validate
+
+# Initialize the isolated one-time Object Storage bootstrap.
+infra-bootstrap-init:
+    bash scripts/tofu-workflow bootstrap init
+
+# Review the real bucket bootstrap with operator-supplied environment inputs.
+infra-bootstrap-plan:
+    bash scripts/tofu-workflow bootstrap plan
+
+# Initialize the cloud root against an existing remote state bucket.
+infra-init backend:
+    bash scripts/tofu-workflow hetzner init {{quote(backend)}}
+
+# Review cloud provisioning; applying remains a separately authorized action.
+infra-plan:
+    bash scripts/tofu-workflow hetzner plan
+
+# Apply only a saved plan that the operator has reviewed and authorized.
+infra-apply root:
+    bash scripts/tofu-workflow {{quote(root)}} apply
 
 # Validate the flake and any OpenTofu configuration that has been added.
 validate:

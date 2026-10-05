@@ -1,0 +1,14 @@
+# Copy to an ignored *.backend.hcl and replace non-secret deployment inputs.
+# Inject AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY through the environment.
+bucket = "REPLACE-state-bucket"
+key    = "forge/hetzner/production.tfstate"
+region = "fsn1"
+endpoints = { s3 = "https://fsn1.your-objectstorage.com" }
+use_path_style              = true
+skip_credentials_validation = true
+skip_region_validation      = true
+skip_requesting_account_id  = true
+skip_metadata_api_check     = true
+skip_s3_checksum            = true
+# Prove conditional-write locking against the real endpoint before applying.
+use_lockfile = true

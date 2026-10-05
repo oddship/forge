@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+root="${1:?configuration root required}"
+action="${2:?action required}"
+case "$root" in
+  bootstrap|hetzner) ;;
+  *) echo "unknown infrastructure root: $root" >&2; exit 2 ;;
+esac
+case "$action" in
+  init)
+    if [ "$root" = bootstrap ]; then
+      tofu -chdir=infra/bootstrap init -input=false
+    else
+      backend="${3:?absolute backend configuration path required}"
+      case "$backend" in
+        /*) ;;
+        *) echo "backend configuration path must be absolute" >&2; exit 2 ;;
+      esac
+      tofu -chdir=infra/hetzner init -input=false -backend-config="$backend"
+    fi
+    ;;
+  plan) tofu -chdir="infra/$root" plan -input=false -out=review.tfplan ;;
+  apply)
+    test -f "infra/$root/review.tfplan"
+    tofu -chdir="infra/$root" apply -input=false review.tfplan
+    ;;
+  *) echo "supported actions: init, plan, apply" >&2; exit 2 ;;
+esac

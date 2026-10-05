@@ -46,6 +46,7 @@ just test-identity # run the ZITADEL policy and restore smoke tests
 just test-host  # run the production host policy check
 just test-https # run the production core locally over HTTPS, including reboot
 just https-run # start an interactive local production-core rehearsal
+just infra-validate # validate actual OpenTofu provider schemas without cloud access
 just test-penpot # check Penpot's configuration and private service boundaries
 just penpot-smoke # probe Penpot in an already running local VM
 just secrets-init # create an ignored local age identity and encrypted fixture
@@ -89,9 +90,9 @@ services; the local HTTPS rehearsal imports the same production core profile.
    Podman, operator SSH, Forgejo Git SSH, observability, and policy checks.
 4. Complete ZITADEL OIDC and NetBird production enrollment, HTTPS/h2c ingress,
    alerting, and the remaining operational runbooks.
-5. Add the recoverable OpenTofu bootstrap for Hetzner networking, Object
-   Storage state/backups, DNS, and the application/runner hosts; deploy NixOS
-   only after the remote-state and disaster-recovery paths are exercised.
+5. Exercise the OpenTofu Object Storage bootstrap and Hetzner application/runner
+   topology against real credentials, complete image/bootstrap and DNS setup,
+   and deploy only after remote-state locking and recovery have been exercised.
 
 Mailpit is intentionally non-delivering. Transactional SMTP and account-recovery testing are release gates before accepting external users.
 

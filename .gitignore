@@ -13,6 +13,8 @@ result-*
 *.tfstate.*
 *.tfvars
 *.tfvars.json
+*.backend.hcl
+*.tfplan
 crash.log
 crash.*.log
 
